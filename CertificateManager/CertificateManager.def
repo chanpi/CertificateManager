@@ -1,0 +1,7 @@
+LIBRARY CertificateManager
+
+SECTIONS
+	.sharedata READ WRITE SHARED
+
+EXPORTS
+	CheckLicense		@1
