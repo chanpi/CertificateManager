@@ -37,12 +37,13 @@ int CheckLicense(LPCTSTR szLicenseFilePath)
 	CHAR* pszMacAddressList = NULL;
 	CHAR* split = "-";
 	CHAR* next = "/";
-	CHAR* pContext;	// strtok_sに使用
+	CHAR* pContext = NULL;	// strtok_sに使用
 
 	if (EXIT_CERT_UNINITIALIZED != g_result) {
 		return g_result;
 	}
 
+	OutputDebugString(_T("---FirstTime---\n"));
 	if (!PathFileExists(szLicenseFilePath)) {
 		return g_result = EXIT_CERT_FILE_NOT_FOUND;
 	}
@@ -54,22 +55,31 @@ int CheckLicense(LPCTSTR szLicenseFilePath)
 	strcpy_s(szZipFileName, sizeof(szZipFileName), szLicenseFilePath);
 #endif
 
-	UnzipCustomizedFile(szZipFileName, g_fileContents);
+	UnzipCustomizedFile(szZipFileName, g_fileContents, _countof(g_fileContents));
 
 	// 有効期限とMACアドレスに分割
 	p = StrChrA(g_fileContents, next[0]);
 	if (p != NULL) {
 		// 有効期限
 		strncpy_s(szExpireDate, _countof(szExpireDate), g_fileContents, p - g_fileContents);
+		OutputDebugStringA("Date:[");
+		OutputDebugStringA(szExpireDate);
+		OutputDebugStringA("]\n");
 
 		// MACアドレス
 		strcpy_s(szMacAddress, _countof(szMacAddress), p+1);
+		OutputDebugStringA("MAC before:[");
+		OutputDebugStringA(szMacAddress);
+		OutputDebugStringA("]\n");
 		RemoveWhiteSpaceA(szMacAddress);
+		OutputDebugStringA("MAC after:[");
+		OutputDebugStringA(szMacAddress);
+		OutputDebugStringA("]\n");
 	}
 
 	// 有効期限のチェック
 	GetLocalTime(&systemtime);
-	sprintf_s(szToday, _countof(szToday), "%04d%02d%02d", systemtime.wYear, systemtime.wMonth, systemtime.wDay);
+	sprintf_s(szToday, _countof(szToday), "%04u%02u%02u", systemtime.wYear, systemtime.wMonth, systemtime.wDay);
 
 	if (StrCmpA(szToday, szExpireDate) > 0) {
 		return g_result = EXIT_CERT_INVALID_EXPIRE_DATE;
@@ -86,10 +96,13 @@ int CheckLicense(LPCTSTR szLicenseFilePath)
 		return g_result = EXIT_CERT_SYSTEM_ERROR;
 	}
 
-	pszMacAddressList = new CHAR[strMacAddressList.length()+1];
+	int len = strMacAddressList.length()+1;
+	pszMacAddressList = new CHAR[len];
 	if (NULL == pszMacAddressList) {
 		return g_result = EXIT_CERT_SYSTEM_ERROR;
 	}
+	ZeroMemory(pszMacAddressList, sizeof(CHAR) * len);
+
 	if (NULL == StrCpyA(pszMacAddressList, strMacAddressList.c_str())) {
 		delete [] pszMacAddressList;
 		return g_result = EXIT_CERT_SYSTEM_ERROR;
@@ -113,7 +126,7 @@ BOOL GetMacAddress(string &strMacAddress, const CHAR split, const CHAR next)
 {
 	ULONG uOutBufferLength = 0;
 	DWORD dwResult = 0;
-	BYTE* pBuffer;
+	BYTE* pBuffer = NULL;
 	PIP_ADAPTER_INFO pAdapterInfo = NULL;
 	CHAR szTemp[BUFFER_SIZE] = {0};
 
@@ -122,8 +135,10 @@ BOOL GetMacAddress(string &strMacAddress, const CHAR split, const CHAR next)
 
 	pBuffer = new BYTE[uOutBufferLength];
 	if (NULL == pBuffer) {
+		OutputDebugString(_T(MESSAGE_ERROR_MEMORY_INVALID));
 		return FALSE;
 	}
+	ZeroMemory(pBuffer, sizeof(BYTE) * uOutBufferLength);
 	pAdapterInfo = (PIP_ADAPTER_INFO)pBuffer;
 	
 	dwResult = GetAdaptersInfo(pAdapterInfo, &uOutBufferLength);

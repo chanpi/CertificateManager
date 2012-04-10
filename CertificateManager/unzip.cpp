@@ -532,6 +532,7 @@ local ZPOS64_T unz64local_SearchCentralDir64(const zlib_filefunc64_32_def* pzlib
             break;
     }
     TRYFREE(buf);
+
     if (uPosFound == 0)
         return 0;
 
@@ -1039,7 +1040,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
             /* ZIP64 extra fields */
             if (headerId == 0x0001)
             {
-                                                        uLong uL;
+                                                        uLong uL_;
 
                                                                 if(file_info.uncompressed_size == MAXU32)
                                                                 {
@@ -1063,7 +1064,7 @@ local int unz64local_GetCurrentFileInfoInternal (unzFile file,
                                                                 if(file_info.disk_num_start == MAXU32)
                                                                 {
                                                                         /* Disk Start Number */
-                                                                        if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
+                                                                        if (unz64local_getLong(&s->z_filefunc, s->filestream,&uL_) != UNZ_OK)
                                                                                 err=UNZ_ERRNO;
                                                                 }
 
@@ -1502,7 +1503,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
     if (pfile_in_zip_read_info==NULL)
         return UNZ_INTERNALERROR;
 
-    pfile_in_zip_read_info->read_buffer=(char*)ALLOC(UNZ_BUFSIZE);
+    pfile_in_zip_read_info->read_buffer=(char*)ALLOC(UNZ_BUFSIZE);		// unzCloseCurrentFile‚Å‰ð•ú‚³‚ê‚Ä‚¢‚é—lŽq
     pfile_in_zip_read_info->offset_local_extrafield = offset_local_extrafield;
     pfile_in_zip_read_info->size_local_extrafield = size_local_extrafield;
     pfile_in_zip_read_info->pos_local_extrafield=0;

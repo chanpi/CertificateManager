@@ -127,8 +127,10 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf /*opaque*/, const void* filena
     if (mode & ZLIB_FILEFUNC_MODE_CREATE)
         mode_fopen = "wb";
 
-    if ((filename!=NULL) && (mode_fopen != NULL))
-        file = FOPEN_FUNC((const char*)filename, mode_fopen);
+    if ((filename!=NULL) && (mode_fopen != NULL)) {
+		fopen_s(&file, (const char*)filename, mode_fopen);
+        //file = FOPEN_FUNC((const char*)filename, mode_fopen);
+	}
     return file;
 }
 
